@@ -10,10 +10,14 @@ import ModalPreviewImpressao from './modais/ModalPreviewImpressao'
 
 interface DashboardCaixaProps {
   caixaAtual: CaixaAbertura
+  vendas: Venda[]
+  retiradas: Retirada[]
+  vendasManuais: { [key: string]: VendaManual[] }
   onFecharCaixa: () => void
   onAbrirDetalhesVenda: (venda: Venda) => void
   onAbrirDetalhesRetirada: (retirada: Retirada) => void
   onPreviewImpressao: (tipo: 'fechamento' | 'parcial') => void
+  onAtualizarDados: () => void 
 }
 
 export default function DashboardCaixa({ 
@@ -583,7 +587,7 @@ export default function DashboardCaixa({
                                       <div className="input-group input-group-sm">
                                         <span className="input-group-text">R$</span>
                                         <input
-                                          ref={el => inputRefs.current[`${tipo}-valor`] = el}
+                                          ref={(el) => {inputRefs.current[`${tipo}-valor`] = el}}
                                           type="number"
                                           className="form-control"
                                           placeholder="0,00"
@@ -622,7 +626,7 @@ export default function DashboardCaixa({
                                     <div className="input-group input-group-sm">
                                       <span className="input-group-text">R$</span>
                                       <input
-                                        ref={el => inputRefs.current[`${tipo}-valor`] = el}
+                                        ref={(el) => {inputRefs.current[`${tipo}-valor`] = el}}
                                         type="number"
                                         className="form-control"
                                         placeholder="0,00"
@@ -652,7 +656,7 @@ export default function DashboardCaixa({
                           {/* Coluna Esquerda - Vendas do Sistema */}
                           <div className="col-6">
                             <div 
-                              ref={el => listaSistemaRefs.current[tipo] = el}
+                              ref={(el) => {listaSistemaRefs.current[tipo] = el}}
                               className="vendas-lista"
                               style={{ overflowY: 'auto' }}
                             >
@@ -690,7 +694,7 @@ export default function DashboardCaixa({
                           {/* Coluna Direita - Vendas Manuais */}
                           <div className="col-6">
                             <div 
-                              ref={el => listaManualRefs.current[tipo] = el}
+                              ref={(el) => {listaManualRefs.current[tipo] = el}}
                               className="vendas-lista"
                               style={{ overflowY: 'auto' }}
                             >

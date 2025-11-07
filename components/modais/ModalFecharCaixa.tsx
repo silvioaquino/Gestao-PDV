@@ -110,7 +110,7 @@ export default function ModalFecharCaixa({
   }
 
   const imprimirComprovanteTermico = async () => {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const conteudo = gerarConteudoImpressaoTermica()
       
       const janelaImpressao = window.open('', '_blank')

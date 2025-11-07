@@ -253,8 +253,7 @@ export default function Home() {
         onFecharCaixa={handleConfirmarFecharCaixa}
         caixaAtual={caixaAtual!}
         vendas={vendas}
-        retiradas={retiradas}
-      />
+        retiradas={retiradas} vendasManuais={{}}      />
 
       <ModalDetalhesVenda
         show={showDetalhesVenda}

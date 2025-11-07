@@ -6,7 +6,10 @@
     "build": "prisma generate && prisma db push && next build",
     "start": "next start",
     "db:push": "prisma db push",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "lint": "next lint",
+    "build:static": "next build && next export",
+    "preview": "next build && next start"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
