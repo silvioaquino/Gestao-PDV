@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model CaixaAbertura {
+  id            String    @id @default(uuid())
+  dataAbertura  DateTime  @default(now())
+  valorInicial  Float
+  observacao    String?
+  status        String    @default("ABERTO")
+  vendas        Venda[]
+  vendasManuais VendaManual[]
+  retiradas     Retirada[]
+  fechamento    CaixaFechamento?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("caixa_abertura")
+  @@index([status])
+  @@index([dataAbertura])
+}
+
+model Venda {
+  id              String   @id @default(uuid())
+  dataVenda       DateTime @default(now())
+  dadosPedido     Json
+  tipoPagamento   String   @default("PENDENTE")
+  valorTotal      Float
+  manual          Boolean  @default(false)
+  caixaAbertura   CaixaAbertura @relation(fields: [caixaAberturaId], references: [id])
+  caixaAberturaId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("vendas")
+  @@index([dataVenda])
+  @@index([caixaAberturaId])
+  @@index([tipoPagamento])
+}
+
+model VendaManual {
+  id              String   @id @default(uuid())
+  dataVenda       DateTime @default(now())
+  tipoPagamento   String
+  valor           Float
+  descricao       String?
+  caixaAbertura   CaixaAbertura @relation(fields: [caixaAberturaId], references: [id])
+  caixaAberturaId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("vendas_manuais")
+  @@index([caixaAberturaId])
+  @@index([tipoPagamento])
+}
+
+model Retirada {
+  id              String   @id @default(uuid())
+  dataRetirada    DateTime @default(now())
+  valor           Float
+  observacao      String?
+  caixaAbertura   CaixaAbertura @relation(fields: [caixaAberturaId], references: [id])
+  caixaAberturaId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("retiradas")
+  @@index([caixaAberturaId])
+}
+
+model CaixaFechamento {
+  id              String   @id @default(uuid())
+  dataFechamento  DateTime @default(now())
+  valorAbertura   Float
+  totalVendas     Float
+  retiradas       Float
+  saldoFinal      Float
+  observacoes     String?
+  caixaAbertura   CaixaAbertura @relation(fields: [caixaAberturaId], references: [id])
+  caixaAberturaId String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("caixa_fechamento")
+}

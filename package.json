@@ -1,0 +1,23 @@
+{
+  "name": "pdv-app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && prisma db push && next build",
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "next": "14.0.0",
+    "node-fetch": "^3.3.2",
+    "prisma": "^5.0.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "typescript": "^5.0.0"
+  }
+}

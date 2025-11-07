@@ -1,0 +1,31 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const caixaId = searchParams.get('caixaId')
+
+    let where = {}
+    if (caixaId) {
+      where = { caixaAberturaId: caixaId }
+    }
+
+    const vendas = await prisma.venda.findMany({
+      where,
+      include: {
+        caixaAbertura: true
+      },
+      orderBy: {
+        dataVenda: 'desc'
+      }
+    })
+
+    return NextResponse.json({ data: vendas })
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Erro ao buscar vendas' },
+      { status: 500 }
+    )
+  }
+}

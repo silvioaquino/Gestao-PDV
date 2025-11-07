@@ -1,0 +1,149 @@
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #3498db;
+  --success-color: #27ae60;
+  --danger-color: #e74c3c;
+  --warning-color: #f39c12;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.navbar {
+  background-color: var(--primary-color);
+}
+
+.card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.status-caixa {
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.caixa-aberto {
+  background-color: rgba(39, 174, 96, 0.2);
+  color: var(--success-color);
+}
+
+.caixa-fechado {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: var(--danger-color);
+}
+
+.payment-column {
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.payment-total {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #dee2e6;
+}
+
+.sale-item {
+  cursor: pointer;
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.sale-item:hover {
+  background-color: #f8f9fa;
+}
+
+.modal-lg {
+  max-width: 800px;
+}
+
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  min-width: 300px;
+}
+
+.saldo-info {
+  background-color: #e8f5e8;
+  border-left: 4px solid var(--success-color);
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.retirada-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.retirada-item:hover {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 8px;
+  margin: -8px -8px 4px -8px;
+}
+
+/* Estilos para impressão térmica */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-section {
+    display: block !important;
+  }
+}
+
+.impressao-termica {
+  width: 80mm;
+  max-width: 80mm;
+  margin: 0;
+  padding: 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.preview-termica {
+  width: 80mm;
+  min-height: 200mm;
+  margin: 0 auto;
+  padding: 5px;
+  background: white;
+  border: 1px solid #ccc;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1;
+}
