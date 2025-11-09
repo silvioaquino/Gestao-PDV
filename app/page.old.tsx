@@ -8,7 +8,7 @@ import ModalFecharCaixa from '@/components/modais/ModalFecharCaixa'
 import ModalDetalhesVenda from '@/components/modais/ModalDetalhesVenda'
 import ModalDetalhesRetirada from '@/components/modais/ModalDetalhesRetirada'
 import ModalPreviewImpressao from '@/components/modais/ModalPreviewImpressao'
-import ModalConsultaCaixa from '@/components/modais/ModalConsultaCaixa'
+import ModalConsultaCaixa from '@/components/modais/ModalConsultaCaixa' // Novo modal
 import { CaixaAbertura, Venda, Retirada, VendaManual, CaixaFechamento } from '@/types'
 import Link from 'next/link'
 
@@ -32,14 +32,13 @@ export default function Home() {
   const [showDetalhesVenda, setShowDetalhesVenda] = useState(false)
   const [showDetalhesRetirada, setShowDetalhesRetirada] = useState(false)
   const [showPreviewImpressao, setShowPreviewImpressao] = useState(false)
-  const [showConsultaCaixa, setShowConsultaCaixa] = useState(false)
+  const [showConsultaCaixa, setShowConsultaCaixa] = useState(false) // Novo estado
   
   // Estados para dados dos modais
   const [vendaSelecionada, setVendaSelecionada] = useState<Venda | null>(null)
   const [retiradaSelecionada, setRetiradaSelecionada] = useState<Retirada | null>(null)
   const [tipoImpressao, setTipoImpressao] = useState<'fechamento' | 'parcial'>('parcial')
-  const [dadosConsulta, setDadosConsulta] = useState<CaixaFechamento | null>(null)
-  const [loadingConsulta, setLoadingConsulta] = useState(false)
+  const [dadosConsulta, setDadosConsulta] = useState<CaixaFechamento | null>(null) // Dados da consulta
 
   // Verificar estado do caixa
   const verificarEstadoCaixa = async () => {
@@ -111,31 +110,17 @@ export default function Home() {
     setShowPreviewImpressao(true)
   }
 
-  // Handler para consulta de caixa - CORRIGIDO
   const handleConsultarCaixa = async (data: string) => {
-    setLoadingConsulta(true)
     try {
-      console.log('Consultando caixa para data:', data)
-      
       const response = await fetch(`/api/caixa/consulta?data=${data}`)
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro na consulta')
-      }
-
-      if (result.success) {
-        setDadosConsulta(result.data)
-        setShowConsultaCaixa(true)
-        console.log('Dados do caixa carregados:', result.data)
-      } else {
-        alert(result.error || 'Nenhum caixa encontrado para esta data')
-      }
+      if (!response.ok) throw new Error('Erro ao consultar caixa')
+      
+      const dados = await response.json()
+      setDadosConsulta(dados.data)
+      setShowConsultaCaixa(true)
     } catch (error) {
       console.error('Erro ao consultar caixa:', error)
-      alert(error instanceof Error ? error.message : 'Erro ao consultar caixa')
-    } finally {
-      setLoadingConsulta(false)
+      alert('Erro ao consultar caixa. Verifique se há dados para a data selecionada.')
     }
   }
 
@@ -230,15 +215,13 @@ export default function Home() {
     }
   }
 
-  const handleCloseConsulta = () => {
-    setShowConsultaCaixa(false)
-    setDadosConsulta(null)
-  }
-
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-dark" style={{backgroundColor: '#2c3e50'}}>
         <div className="container">
+          {/*<Link className="navbar-brand" href="/">
+            <i className="bi bi-cash-coin"></i> Sistema PDV - Backend Proxy
+          </Link>*/}
           <div className="navbar-nav ms-auto">
             <span className={`navbar-text status-caixa ${caixaAberto ? 'caixa-aberto' : 'caixa-fechado'}`}>
               <i className={`bi bi-circle-fill ${caixaAberto ? 'text-success' : 'text-danger'}`}></i>
@@ -268,21 +251,9 @@ export default function Home() {
           <TelaInicial 
             onAbrirCaixa={handleAbrirCaixa}
             onConsultarCaixa={handleConsultarCaixa}
-            loading={loadingConsulta}
           />
         )}
       </div>
-
-      {/* Loading durante a consulta */}
-      {loadingConsulta && (
-        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" 
-             style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999 }}>
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Carregando...</span>
-          </div>
-          <span className="ms-2 text-white">Consultando caixa...</span>
-        </div>
-      )}
 
       {/* Modais */}
       <ModalAbrirCaixa
@@ -298,7 +269,7 @@ export default function Home() {
         caixaAtual={caixaAtual!}
         vendas={vendas}
         retiradas={retiradas} 
-        vendasManuais={vendasManuais}
+        vendasManuais={{}}
       />
 
       <ModalDetalhesVenda
@@ -327,7 +298,7 @@ export default function Home() {
 
       <ModalConsultaCaixa
         show={showConsultaCaixa}
-        onClose={handleCloseConsulta}
+        onClose={() => setShowConsultaCaixa(false)}
         dadosCaixa={dadosConsulta}
       />
     </>

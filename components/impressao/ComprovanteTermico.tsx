@@ -31,7 +31,7 @@ export default function ComprovanteTermico({
   const saldoFinal = valorAbertura + vendasDinheiro - totalRetiradas
   const faturamentoFinal = todasVendas - totalRetiradas
 
-  const tiposPagamento = ['DINHEIRO', 'CARTAO_CREDITO', 'CARTAO_DEBITO', 'PIX', 'OUTRO']
+  const tiposPagamento = ['DINHEIRO', 'CARTAO_CREDITO', 'CARTAO_DEBITO', 'PIX', 'VR', 'OUTRO']
   
   // Calcular totais por tipo de pagamento
   const totaisPorTipo: { [key: string]: number } = {}
@@ -49,7 +49,7 @@ export default function ComprovanteTermico({
         <br>
         <div class="text-center">
           <div class="fw-bold">RESTAURANTE EMPORIO DO SABOR</div>
-          <div>CNPJ: 12.345.678/0001-90</div>
+          <div>CNPJ: 30.569.448/0001-91</div>
         </div>
         <br>
         <div class="text-center">
@@ -58,7 +58,6 @@ export default function ComprovanteTermico({
         </div>
         <div class="text-center">
           <div>Data: ${dataAtual}</div>
-          <div>Caixa: ${caixaAtual?.id.substring(0, 8).toUpperCase() || 'N/A'}</div>
         </div>
         
         <div class="linha-divisoria"></div>
@@ -111,7 +110,6 @@ export default function ComprovanteTermico({
         <br>
         
         ${retiradas.length > 0 ? retiradas.map((retirada, index) => {
-          const dataRetirada = new Date(retirada.dataRetirada).toLocaleTimeString('pt-BR')
           const valor = retirada.valor
           const obs = retirada.observacao || 'Sem observação'
           
@@ -122,9 +120,6 @@ export default function ComprovanteTermico({
                 <td class="text-left" style="width: 60%;">
                   <small>${obs.substring(0, 35)}${obs.length > 35 ? '...' : ''}</small>
                 </td>
-              </tr>
-              <tr>
-                <td colspan="2" class="text-left small text-muted">${dataRetirada}</td>
               </tr>
             </table>
             ${index < retiradas.length - 1 ? '<div style="margin-bottom: 2px;"></div>' : ''}

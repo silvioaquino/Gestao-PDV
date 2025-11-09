@@ -473,11 +473,11 @@ export default function ModalFecharCaixa({
                 </div>
               </div>
 
-              {/* Informação sobre impressão automática */}
+              {/* Informação sobre impressão automática 
               <div className="alert alert-info mt-3">
                 <i className="bi bi-info-circle me-2"></i>
                 Ao fechar o caixa, um comprovante térmico será impresso automaticamente com todos os dados do fechamento.
-              </div>
+              </div>*/}
             </div>
             <div className="modal-footer">
               <button 

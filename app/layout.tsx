@@ -31,7 +31,7 @@ export default function RootLayout({
         <nav className="navbar navbar-expand-lg navbar-dark" style={{backgroundColor: '#2c3e50'}}>
           <div className="container">
             <Link className="navbar-brand" href="/">
-              <i className="bi bi-cash-coin"></i> Sistema PDV
+              <i className="bi bi-cash-coin"></i> Sistema PDV - Backend Proxy
             </Link>
             <div className="navbar-nav ms-auto">
               <Link className="nav-link" href="/">
