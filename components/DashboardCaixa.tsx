@@ -562,7 +562,7 @@ export default function DashboardCaixa({
                       </div>
                       <div className="card-body p-2">
                         {/* LINHA: Cabeçalho com contadores */}
-                        <div className="row mb-2">
+                        {/*<div className="row mb-2">
                           <div className="col-6">
                             <small className="text-muted">
                               Sistema <span className="badge bg-primary">{vendasTipo.length}</span>
@@ -573,7 +573,7 @@ export default function DashboardCaixa({
                               Manual <span className="badge bg-success">{vendasManuaisTipo.length}</span>
                             </small>
                           </div>
-                        </div>
+                        </div>*/}
 
                         {/* LINHA: Inputs ocupando LARGURA TOTAL da coluna manual */}
                         <div className="row mb-2">
@@ -648,6 +648,19 @@ export default function DashboardCaixa({
                                 </div>
                               )}
                             </div>
+                          </div>
+                        </div>
+
+                        <div className="row mb-2">
+                          <div className="col-6">
+                            <small className="text-muted">
+                              Sistema <span className="badge bg-primary">{vendasTipo.length}</span>
+                            </small>
+                          </div>
+                          <div className="col-6">
+                            <small className="text-muted">
+                              Manual <span className="badge bg-success">{vendasManuaisTipo.length}</span>
+                            </small>
                           </div>
                         </div>
 
