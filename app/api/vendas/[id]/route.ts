@@ -142,3 +142,75 @@ export async function GET(
     )
   }
 }
+
+// app/api/vendas/[id]/route.ts - Adicione o método DELETE
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params
+    console.log('🗑️ Recebendo solicitação de exclusão para venda:', id)
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'ID da venda é obrigatório' },
+        { status: 400 }
+      )
+    }
+
+    // Verificar se a venda existe
+    const vendaExistente = await prisma.venda.findUnique({
+      where: { id },
+      include: {
+        produtos: true // Incluir produtos relacionados se existirem
+      }
+    })
+
+    if (!vendaExistente) {
+      return NextResponse.json(
+        { success: false, error: 'Venda não encontrada' },
+        { status: 404 }
+      )
+    }
+
+    console.log('🔄 Excluindo venda:', {
+      id: vendaExistente.id,
+      nomeCliente: vendaExistente.nomeCliente,
+      valorTotal: vendaExistente.valorTotal,
+      produtosCount: vendaExistente.produtos?.length || 0
+    })
+
+    // Excluir a venda (os produtos serão excluídos em cascade devido ao schema)
+    await prisma.venda.delete({
+      where: { id }
+    })
+
+    console.log('✅ Venda excluída com sucesso:', id)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Venda excluída com sucesso',
+      data: {
+        id: vendaExistente.id,
+        nomeCliente: vendaExistente.nomeCliente,
+        valorTotal: vendaExistente.valorTotal
+      }
+    }, { status: 200 })
+
+  } catch (error: any) {
+    console.error('❌ Erro ao excluir venda:', error)
+    
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { success: false, error: 'Venda não encontrada' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(
+      { success: false, error: 'Erro interno do servidor: ' + error.message },
+      { status: 500 }
+    )
+  }
+}

@@ -1,3 +1,4 @@
+// components/dashboard/modais/ModalDetalhesVenda.tsx
 'use client'
 
 import { useState } from 'react'
@@ -9,15 +10,18 @@ interface ModalDetalhesVendaProps {
   onClose: () => void
   venda: Venda | null
   onAtualizarVenda: (vendaId: string, tipoPagamento: string) => Promise<void>
+  onExcluirVenda: (vendaId: string) => Promise<void> // Nova prop
 }
 
 export default function ModalDetalhesVenda({
   show,
   onClose,
   venda,
-  onAtualizarVenda
+  onAtualizarVenda,
+  onExcluirVenda // Nova prop
 }: ModalDetalhesVendaProps) {
   const [loading, setLoading] = useState(false)
+  const [loadingExclusao, setLoadingExclusao] = useState(false)
   const [tipoPagamentoSelecionado, setTipoPagamentoSelecionado] = useState(venda?.tipoPagamento || 'PENDENTE')
 
   if (!show || !venda) return null
@@ -32,37 +36,7 @@ export default function ModalDetalhesVenda({
     'PENDENTE'
   ]
 
-  // components/dashboard/modais/ModalDetalhesVenda.tsx
-const handleSalvarAlteracao = async () => {
-  if (!venda) return
-  
-  if (tipoPagamentoSelecionado === venda.tipoPagamento) {
-    onClose()
-    return
-  }
-
-  setLoading(true)
-  try {
-    console.log('🔄 Salvando alteração:', {
-      vendaId: venda.id,
-      tipoPagamentoAntigo: venda.tipoPagamento,
-      tipoPagamentoNovo: tipoPagamentoSelecionado
-    })
-
-    await onAtualizarVenda(venda.id, tipoPagamentoSelecionado)
-    
-    console.log('✅ Alteração salva com sucesso')
-    onClose()
-  } catch (error: any) {
-    console.error('❌ Erro ao atualizar venda:', error)
-    alert(`Erro ao atualizar tipo de pagamento: ${error.message}`)
-  } finally {
-    setLoading(false)
-  }
-}
-
-
-  /*const handleSalvarAlteracao = async () => {
+  const handleSalvarAlteracao = async () => {
     if (!venda) return
     
     if (tipoPagamentoSelecionado === venda.tipoPagamento) {
@@ -72,22 +46,65 @@ const handleSalvarAlteracao = async () => {
 
     setLoading(true)
     try {
+      console.log('🔄 Salvando alteração:', {
+        vendaId: venda.id,
+        tipoPagamentoAntigo: venda.tipoPagamento,
+        tipoPagamentoNovo: tipoPagamentoSelecionado
+      })
+
       await onAtualizarVenda(venda.id, tipoPagamentoSelecionado)
+      
+      console.log('✅ Alteração salva com sucesso')
       onClose()
-    } catch (error) {
-      console.error('Erro ao atualizar venda:', error)
-      alert('Erro ao atualizar tipo de pagamento')
+    } catch (error: any) {
+      console.error('❌ Erro ao atualizar venda:', error)
+      alert(`Erro ao atualizar tipo de pagamento: ${error.message}`)
     } finally {
       setLoading(false)
     }
-  }*/
+  }
+
+  const handleExcluirVenda = async () => {
+    if (!venda) return
+
+    const confirmacao = confirm(
+      `Tem certeza que deseja EXCLUIR esta venda?\n\n` +
+      `Cliente: ${venda.nomeCliente || 'Não informado'}\n` +
+      `Valor: ${formatarMoeda(venda.valorTotal)}\n` +
+      `Data: ${new Date(venda.dataVenda).toLocaleString('pt-BR')}\n\n` +
+      `Esta ação não pode ser desfeita!`
+    )
+
+    if (!confirmacao) return
+
+    setLoadingExclusao(true)
+    try {
+      console.log('🗑️ Excluindo venda:', venda.id)
+      await onExcluirVenda(venda.id)
+      console.log('✅ Venda excluída com sucesso')
+      onClose()
+    } catch (error: any) {
+      console.error('❌ Erro ao excluir venda:', error)
+      alert(`Erro ao excluir venda: ${error.message}`)
+    } finally {
+      setLoadingExclusao(false)
+    }
+  }
 
   return (
     <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
       <div className="modal-dialog modal-lg">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Detalhes da Venda</h5>
+            <h5 className="modal-title">
+              Detalhes da Venda
+              {venda.tipoPagamento === 'PENDENTE' && (
+                <span className="badge bg-warning text-dark ms-2">
+                  <i className="bi bi-clock-history me-1"></i>
+                  PENDENTE
+                </span>
+              )}
+            </h5>
             <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           
@@ -96,7 +113,7 @@ const handleSalvarAlteracao = async () => {
             <div className="row mb-4">
               <div className="col-md-6">
                 <h6>Informações da Venda</h6>
-                <p><strong>ID:</strong> {venda.id}</p>
+                <p><strong>ID:</strong> <small className="text-muted">{venda.id}</small></p>
                 <p><strong>Data:</strong> {new Date(venda.dataVenda).toLocaleString('pt-BR')}</p>
                 <p><strong>Valor Total:</strong> {formatarMoeda(venda.valorTotal)}</p>
                 <p>
@@ -157,7 +174,10 @@ const handleSalvarAlteracao = async () => {
                           Salvando...
                         </>
                       ) : (
-                        'Salvar Alteração'
+                        <>
+                          <i className="bi bi-check-lg me-2"></i>
+                          Salvar
+                        </>
                       )}
                     </button>
                   </div>
@@ -193,6 +213,8 @@ const handleSalvarAlteracao = async () => {
                                   {produto.adicionais.map((adicional: any, idx: number) => (
                                     <span key={idx}>
                                       {adicional.nome}
+                                      {adicional.quantidade > 1 && ` (${adicional.quantidade}x)`}
+                                      {adicional.valor > 0 && ` - ${formatarMoeda(adicional.valor)}`}
                                       {idx < produto.adicionais.length - 1 ? ', ' : ''}
                                     </span>
                                   ))}
@@ -211,6 +233,39 @@ const handleSalvarAlteracao = async () => {
               </div>
             )}
 
+            {/* Ação de Exclusão */}
+            <div className="card mt-4 border-danger">
+              <div className="card-header bg-danger text-white">
+                <h6 className="card-title mb-0">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  Área de Exclusão
+                </h6>
+              </div>
+              <div className="card-body">
+                <div className="alert alert-warning">
+                  <strong>Atenção!</strong> Esta ação não pode ser desfeita. 
+                  Use apenas para excluir pedidos duplicados ou com erro.
+                </div>
+                <button 
+                  className="btn btn-danger w-100"
+                  onClick={handleExcluirVenda}
+                  disabled={loadingExclusao}
+                >
+                  {loadingExclusao ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Excluindo...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-trash me-2"></i>
+                      Excluir Esta Venda
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {/* Dados Completos do Webhook (para debug) */}
             <div className="card mt-4">
               <div className="card-header">
@@ -226,6 +281,7 @@ const handleSalvarAlteracao = async () => {
           
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
+              <i className="bi bi-x-lg me-2"></i>
               Fechar
             </button>
           </div>

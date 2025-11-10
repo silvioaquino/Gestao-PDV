@@ -358,6 +358,44 @@ const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
   }
 }
 
+// No DashboardCaixa, adicione esta função:
+
+const handleExcluirVenda = async (vendaId: string) => {
+  try {
+    console.log('🗑️ Excluindo venda:', vendaId)
+
+    const response = await fetch(`/api/vendas/${vendaId}`, {
+      method: 'DELETE'
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ Erro HTTP:', response.status, errorText)
+      throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao excluir venda'}`)
+    }
+
+    const contentType = response.headers.get('content-type')
+    let data
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json()
+    } else {
+      const text = await response.text()
+      data = { success: true, message: 'Venda excluída com sucesso' }
+    }
+
+    console.log('✅ Venda excluída com sucesso:', data)
+
+    // Recarregar os dados do caixa para atualizar a lista
+    await carregarDadosCaixa()
+
+    return data
+
+  } catch (error: any) {
+    console.error('❌ Erro ao excluir venda:', error)
+    throw error
+  }
+}
+
   /*const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
     try {
       const response = await fetch(`/api/vendas/${vendaId}`, {
@@ -992,6 +1030,7 @@ const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
         onClose={() => setShowDetalhesVenda(false)}
         venda={vendaSelecionada}
         onAtualizarVenda={handleAtualizarVenda}
+        onExcluirVenda={handleExcluirVenda}
       />
 
       <ModalDetalhesRetirada
