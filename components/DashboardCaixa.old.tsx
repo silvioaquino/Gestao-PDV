@@ -153,10 +153,6 @@ export default function DashboardCaixa({
     return acc
   }, {} as {[key: string]: number})
 
-  // Filtrar vendas pendentes
-  const vendasPendentes = vendas.filter(venda => venda.tipoPagamento === 'PENDENTE')
-  const totalVendasPendentes = vendasPendentes.reduce((total, v) => total + (v.valorTotal || 0), 0)
-
   // Handlers para retiradas
   const handleRegistrarRetirada = async () => {
     const valor = parseFloat(valorRetirada)
@@ -301,64 +297,7 @@ export default function DashboardCaixa({
     setShowPreviewImpressao(true)
   }
 
-
-  // Atualize a função handleAtualizarVenda no DashboardCaixa:
-
-const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
-  try {
-    console.log('📤 Atualizando venda:', { vendaId, tipoPagamento })
-
-    const response = await fetch(`/api/vendas/${vendaId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo_pagamento: tipoPagamento })
-    })
-
-    // Verificar se a resposta está OK antes de tentar parsear JSON
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('❌ Erro HTTP:', response.status, errorText)
-      throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao atualizar venda'}`)
-    }
-
-    // Tentar parsear JSON apenas se houver conteúdo
-    const contentType = response.headers.get('content-type')
-    let data
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      const text = await response.text()
-      console.log('📥 Resposta não-JSON:', text)
-      // Se não for JSON, assumir sucesso
-      data = { success: true, message: 'Venda atualizada com sucesso' }
-    }
-
-    console.log('✅ Venda atualizada com sucesso:', data)
-
-    // Atualizar a lista de vendas localmente
-    setVendas(prevVendas => 
-      prevVendas.map(v => 
-        v.id === vendaId 
-          ? { ...v, tipoPagamento: tipoPagamento }
-          : v
-      )
-    )
-
-    // Recarregar os dados do caixa para atualizar os totais
-    await carregarDadosCaixa()
-
-    // Ajustar alturas após atualização
-    setTimeout(ajustarAlturasListas, 100)
-
-    return data
-
-  } catch (error: any) {
-    console.error('❌ Erro ao atualizar venda:', error)
-    throw error
-  }
-}
-
-  /*const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
+  const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
     try {
       const response = await fetch(`/api/vendas/${vendaId}`, {
         method: 'PUT',
@@ -387,7 +326,7 @@ const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
       console.error('❌ Erro ao atualizar venda:', error)
       throw error
     }
-  }*/
+  }
 
   const handleExcluirRetirada = async (retiradaId: string) => {
     try {
@@ -571,119 +510,6 @@ const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
             )}
           </div>
         </div>
-
-        {/* NOVO CARD: Vendas Pendentes */}
-        <div className="card mt-4">
-          <div className="card-header bg-warning text-dark">
-            <h5 className="card-title mb-0">
-              <i className="bi bi-clock-history me-2"></i>
-              Vendas Pendentes
-              {vendasPendentes.length > 0 && (
-                <span className="badge bg-danger ms-2">{vendasPendentes.length}</span>
-              )}
-            </h5>
-          </div>
-          <div className="card-body">
-            {vendasPendentes.length > 0 ? (
-              <>
-                <div className="mb-3">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <span className="fw-bold">Total Pendente:</span>
-                    <span className="badge bg-warning text-dark fs-6">
-                      {formatarMoeda(totalVendasPendentes)}
-                    </span>
-                  </div>
-                </div>
-                
-                <div 
-                  className="vendas-lista"
-                  style={{ 
-                    maxHeight: '300px', 
-                    overflowY: 'auto',
-                    border: '1px solid #e9ecef',
-                    borderRadius: '5px',
-                    padding: '10px'
-                  }}
-                >
-                  {vendasPendentes.map(venda => (
-                    <div 
-                      key={venda.id} 
-                      className="sale-item pendente p-2 border-bottom"
-                      onClick={() => handleAbrirDetalhesVenda(venda)}
-                      style={{ 
-                        cursor: 'pointer',
-                        backgroundColor: '#fff9e6',
-                        borderRadius: '5px',
-                        marginBottom: '8px'
-                      }}
-                    >
-                      <div className="d-flex justify-content-between align-items-start mb-1">
-                        <span className="fw-bold text-warning">{formatarMoeda(venda.valorTotal)}</span>
-                        <small className="text-muted">
-                          {new Date(venda.dataVenda).toLocaleTimeString('pt-BR', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </small>
-                      </div>
-                      
-                      {venda.nomeCliente && (
-                        <div className="mb-1">
-                          <small className="text-muted">
-                            <strong>Cliente:</strong> {venda.nomeCliente}
-                          </small>
-                        </div>
-                      )}
-                      
-                      {venda.telefoneCliente && (
-                        <div className="mb-1">
-                          <small className="text-muted">
-                            <strong>Telefone:</strong> {venda.telefoneCliente}
-                          </small>
-                        </div>
-                      )}
-                      
-                      {venda.tipoPedido && (
-                        <div className="mb-1">
-                          <small className="text-muted">
-                            <strong>Tipo:</strong> {venda.tipoPedido}
-                          </small>
-                        </div>
-                      )}
-                      
-                      {venda.endereco && (
-                        <div className="mb-1">
-                          <small className="text-muted">
-                            <strong>Endereço:</strong> {venda.endereco}
-                          </small>
-                        </div>
-                      )}
-                      
-                      <div className="mt-2">
-                        <small className="badge bg-warning text-dark">
-                          <i className="bi bi-exclamation-triangle me-1"></i>
-                          Aguardando definição de pagamento
-                        </small>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-3 text-center">
-                  <small className="text-muted">
-                    Clique em uma venda para definir o tipo de pagamento
-                  </small>
-                </div>
-              </>
-            ) : (
-              <div className="text-center text-muted py-4">
-                <i className="bi bi-check-circle text-success" style={{ fontSize: '2rem' }}></i>
-                <p className="mt-2 mb-0">Nenhuma venda pendente</p>
-                <small>Todas as vendas têm tipo de pagamento definido</small>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       <div className="col-md-8">
@@ -719,6 +545,7 @@ const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
 
                 return (
                   <div key={tipo} className="col-md-6 payment-column mb-4">
+                    {/* MUDANÇA: alterado para col-md-6 para 2 cards por linha */}
                     <div className="card h-100">
                       <div className="card-header text-white py-2" style={{ 
                         backgroundColor: tipo === 'DINHEIRO' ? '#28a745' : 
@@ -734,6 +561,20 @@ const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
                         </h6>
                       </div>
                       <div className="card-body p-2">
+                        {/* LINHA: Cabeçalho com contadores */}
+                        {/*<div className="row mb-2">
+                          <div className="col-6">
+                            <small className="text-muted">
+                              Sistema <span className="badge bg-primary">{vendasTipo.length}</span>
+                            </small>
+                          </div>
+                          <div className="col-6">
+                            <small className="text-muted">
+                              Manual <span className="badge bg-success">{vendasManuaisTipo.length}</span>
+                            </small>
+                          </div>
+                        </div>*/}
+
                         {/* LINHA: Inputs ocupando LARGURA TOTAL da coluna manual */}
                         <div className="row mb-2">
                           <div className="col-12">
