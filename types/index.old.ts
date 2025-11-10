@@ -17,27 +17,6 @@ export interface WebhookCardapioAI {
   }>
 }
 
-// NOVO TIPO para a estrutura atualizada do Cardápio.ai
-export interface WebhookCardapioAINovaEstrutura {
-  nomeCliente: string
-  telefoneCliente: string
-  tipoPedido: string
-  endereco: string
-  dataCompra: string
-  valorCompra: number
-  produtos: Array<{
-    nome: string
-    quantidade: string | number
-    valor: number
-    adicionais?: Array<{
-      nome: string
-      quantidade: number
-      valor: number
-    }>
-  }>
-  tipoPagamento?: string
-}
-
 export interface CaixaAbertura {
   id: string
   dataAbertura: Date
@@ -46,19 +25,12 @@ export interface CaixaAbertura {
   status: string
   createdAt: Date
   updatedAt: Date
-  dataFechamento?: Date // Tornado opcional pois só existe quando fechado
-  vendas?: Venda[] // Adicionado relacionamento
-  vendasManuais?: VendaManual[] // Adicionado relacionamento
-  retiradas?: Retirada[] // Adicionado relacionamento
-  fechamento?: CaixaFechamento // Adicionado relacionamento
+  dataFechamento: Date
 }
 
 export interface Venda {
   id: string
   nomeCliente: string
-  telefoneCliente?: string // Adicionado campo
-  tipoPedido?: string // Adicionado campo
-  endereco?: string // Adicionado campo
   dataVenda: Date
   dadosPedido: any
   tipoPagamento: string
@@ -67,22 +39,6 @@ export interface Venda {
   caixaAberturaId: string
   createdAt: Date
   updatedAt: Date
-  produtos?: ProdutoVenda[] // NOVO relacionamento
-  caixaAbertura?: CaixaAbertura // Relacionamento opcional
-}
-
-// NOVO TIPO para produtos da venda
-export interface ProdutoVenda {
-  id: string
-  vendaId: string
-  nome: string
-  quantidade: number
-  valor: number
-  adicionais?: any // JSON com array de adicionais
-  observacao?: string
-  createdAt: Date
-  updatedAt: Date
-  venda?: Venda // Relacionamento opcional
 }
 
 export interface VendaManual {
@@ -94,7 +50,6 @@ export interface VendaManual {
   caixaAberturaId: string
   createdAt: Date
   updatedAt: Date
-  caixaAbertura?: CaixaAbertura // Relacionamento opcional
 }
 
 export interface Retirada {
@@ -105,9 +60,9 @@ export interface Retirada {
   caixaAberturaId: string
   createdAt: Date
   updatedAt: Date
-  caixaAbertura?: CaixaAbertura // Relacionamento opcional
 }
 
+// Em '@/types/index.ts' - ORGANIZAR o tipo existente
 export interface CaixaFechamento {
   id: string
   // Campos principais
@@ -161,35 +116,4 @@ export interface CaixaFechamento {
   quantidade_vendas?: number
   quantidade_vendas_manuais?: number
   quantidade_retiradas?: number
-
-  // Relacionamento
-  caixaAbertura?: CaixaAbertura
-}
-
-// TIPOS PARA FORMAS DE PAGAMENTO
-export type TipoPagamento = 
-  | 'DINHEIRO' 
-  | 'CARTAO_CREDITO' 
-  | 'CARTAO_DEBITO' 
-  | 'PIX' 
-  | 'OUTRO' 
-  | 'PENDENTE' 
-  | 'VR'
-
-// TIPO PARA O RESPONSE DA API
-export interface WebhookResponse {
-  success: boolean
-  message: string
-  venda_id?: string
-  error?: string
-  code?: string
-  data?: {
-    id: string
-    nomeCliente: string
-    valorTotal: number
-    tipoPagamento: string
-    dataVenda: Date
-    caixaId: string
-    produtosCount?: number
-  }
 }

@@ -43,13 +43,33 @@ model Venda {
   tipoPedido      String?
   endereco        String?
 
+  // Relacionamento com produtos
+  produtos        ProdutoVenda[]
+
   @@map("vendas")
   @@index([dataVenda])
   @@index([caixaAberturaId])
   @@index([tipoPagamento])
   @@index([nomeCliente])
   @@index([tipoPedido])
+}
 
+model ProdutoVenda {
+  id          String   @id @default(uuid())
+  vendaId     String
+  nome        String
+  quantidade  Int
+  valor       Float
+  adicionais  Json?   // Array de adicionais em JSON
+  observacao  String?
+  
+  venda       Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("produto_venda")
+  @@index([vendaId])
+  @@index([nome])
 }
 
 model VendaManual {
