@@ -37,10 +37,19 @@ model Venda {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Novos campos para facilitar consultas
+  nomeCliente     String?
+  telefoneCliente String?
+  tipoPedido      String?
+  endereco        String?
+
   @@map("vendas")
   @@index([dataVenda])
   @@index([caixaAberturaId])
   @@index([tipoPagamento])
+  @@index([nomeCliente])
+  @@index([tipoPedido])
+
 }
 
 model VendaManual {

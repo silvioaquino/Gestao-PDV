@@ -40,13 +40,8 @@ export async function POST(request: NextRequest) {
     console.log('🔄 Processando dados do webhook...')
     
     let dadosProcessados: any = {}
-    let tipoPagamento = 'PENDENTE'
-    let nomeCliente = ''
-    let telefoneCliente = ''
-    let tipoPedido = ''
-    let endereco = ''
-    let valorTotal = 0
-
+    let tipoPagamento = 'PENDENTE' // Default
+    
     // Formato Cardápio.ai oficial
     if (requestBody.cliente && requestBody.pedido) {
       dadosProcessados = {
@@ -57,12 +52,6 @@ export async function POST(request: NextRequest) {
         webhook_received_at: new Date().toISOString()
       }
       
-      nomeCliente = requestBody.cliente.nome || ''
-      telefoneCliente = requestBody.cliente.telefone || ''
-      tipoPedido = requestBody.pedido.tipo || ''
-      endereco = requestBody.pedido.endereco || ''
-      valorTotal = parseFloat(requestBody.pedido.valorTotal) || 0
-      
       // Tentar extrair tipo de pagamento do webhook
       if (requestBody.pedido.tipoPagamento) {
         tipoPagamento = requestBody.pedido.tipoPagamento.toUpperCase()
@@ -72,36 +61,7 @@ export async function POST(request: NextRequest) {
         tipoPagamento = requestBody.tipo_pagamento.toUpperCase()
       }
     } 
-    // NOVO FORMATO - Dados diretos
-    else if (requestBody.nomeCliente) {
-      dadosProcessados = {
-        cliente: {
-          nome: requestBody.nomeCliente,
-          telefone: requestBody.telefoneCliente || 'Não informado'
-        },
-        pedido: {
-          tipo: requestBody.tipoPedido || 'DELIVERY',
-          endereco: requestBody.endereco || '',
-          dataHora: requestBody.dataCompra ? converterDataBRParaISO(requestBody.dataCompra) : new Date().toISOString(),
-          valorTotal: requestBody.valorCompra || 0
-        },
-        produtos: requestBody.produtos || [],
-        origem: 'cardapio-ai',
-        webhook_received_at: new Date().toISOString()
-      }
-      
-      nomeCliente = requestBody.nomeCliente
-      telefoneCliente = requestBody.telefoneCliente || ''
-      tipoPedido = requestBody.tipoPedido || ''
-      endereco = requestBody.endereco || ''
-      valorTotal = parseFloat(requestBody.valorCompra) || 0
-      
-      // Extrair tipo de pagamento
-      if (requestBody.tipoPagamento) {
-        tipoPagamento = requestBody.tipoPagamento.toUpperCase()
-      }
-    }
-    // Formato de teste alternativo (mantido para compatibilidade)
+    // Formato de teste alternativo
     else {
       dadosProcessados = {
         cliente: {
@@ -118,12 +78,6 @@ export async function POST(request: NextRequest) {
         origem: 'teste',
         webhook_received_at: new Date().toISOString()
       }
-      
-      nomeCliente = requestBody.nome_cliente || 'Cliente Não Identificado'
-      telefoneCliente = requestBody.telefone_cliente || ''
-      tipoPedido = requestBody.tipo_pedido || ''
-      endereco = requestBody.endereco_completo || ''
-      valorTotal = parseFloat(requestBody.valor_total) || 0
       
       // Extrair tipo de pagamento do formato de teste
       if (requestBody.tipo_pagamento) {
@@ -161,8 +115,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validar valor total
+    const valorTotal = parseFloat(dadosProcessados.pedido.valorTotal)
     if (isNaN(valorTotal) || valorTotal <= 0) {
-      console.log('❌ Valor total inválido:', valorTotal)
+      console.log('❌ Valor total inválido:', dadosProcessados.pedido.valorTotal)
       return NextResponse.json(
         { 
           success: false,
@@ -174,9 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ Dados processados:')
-    console.log('   - Cliente:', nomeCliente)
-    console.log('   - Telefone:', telefoneCliente)
-    console.log('   - Tipo Pedido:', tipoPedido)
+    console.log('   - Cliente:', dadosProcessados.cliente.nome)
     console.log('   - Valor Total:', valorTotal)
     console.log('   - Tipo Pagamento:', tipoPagamento)
     console.log('   - Produtos:', dadosProcessados.produtos.length)
@@ -190,12 +143,7 @@ export async function POST(request: NextRequest) {
       tipoPagamento: tipoPagamento,
       caixaAberturaId: caixaAberto.id,
       manual: false,
-      dataVenda: new Date(),
-      // Novos campos para facilitar consultas
-      nomeCliente: nomeCliente,
-      telefoneCliente: telefoneCliente,
-      tipoPedido: tipoPedido,
-      endereco: endereco
+      dataVenda: new Date()
     }
 
     console.log('   Dados da venda:', JSON.stringify(vendaData, null, 2))
@@ -207,7 +155,6 @@ export async function POST(request: NextRequest) {
 
       console.log('🎉 VENDA SALVA COM SUCESSO!')
       console.log('   - ID:', venda.id)
-      console.log('   - Cliente:', venda.nomeCliente)
       console.log('   - Valor:', venda.valorTotal)
       console.log('   - Tipo Pagamento:', venda.tipoPagamento)
       console.log('   - Data:', venda.dataVenda)
@@ -218,7 +165,6 @@ export async function POST(request: NextRequest) {
         venda_id: venda.id,
         data: {
           id: venda.id,
-          nomeCliente: venda.nomeCliente,
           valorTotal: venda.valorTotal,
           tipoPagamento: venda.tipoPagamento,
           dataVenda: venda.dataVenda,
@@ -255,16 +201,5 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     )
-  }
-}
-
-// Função auxiliar para converter data BR para ISO
-function converterDataBRParaISO(dataBR: string): string {
-  try {
-    const [dia, mes, ano] = dataBR.split('/')
-    return new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia)).toISOString()
-  } catch (error) {
-    console.log('❌ Erro ao converter data, usando data atual:', error)
-    return new Date().toISOString()
   }
 }

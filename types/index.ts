@@ -30,6 +30,7 @@ export interface CaixaAbertura {
 
 export interface Venda {
   id: string
+  nomeCliente: string
   dataVenda: Date
   dadosPedido: any
   tipoPagamento: string
