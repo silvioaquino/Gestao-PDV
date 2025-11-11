@@ -497,12 +497,12 @@ export default function DashboardCaixa({
             <div className="mb-3">
               <strong>Vendas em Dinheiro:</strong> {formatarMoeda(vendasDinheiro)}
             </div>
-            <div className="mb-3">
+            <div className="mb-2">
               <strong>Total Dinheiro (Inicial + Vendas):</strong> 
               <span className="fw-bold text-primary"> {formatarMoeda(totalSistemaDinheiro)}</span>
             </div>
             <div className="mb-3">
-              <strong>Total de Vendas (Todos os Tipos):</strong> {formatarMoeda(todasVendas)}
+              <strong>Total de Vendas:</strong> {formatarMoeda(todasVendas)}
             </div>
             <div className="mb-3">
               <strong>Total de Retiradas:</strong> {formatarMoeda(totalRetiradas)}
