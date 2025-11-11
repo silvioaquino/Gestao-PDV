@@ -69,7 +69,7 @@ export default function ModalFecharCaixa({
     ? Object.values(vendasManuais).flat().reduce((total: number, v: any) => total + (v.valor || 0), 0)
     : 0
   
-  const totalGeralVendas = totalVendasSistema + totalVendasManuais
+  const totalGeralVendas = totalVendasSistema
 
   const handleSubmit = async () => {
     setLoading(true)
@@ -126,12 +126,12 @@ export default function ModalFecharCaixa({
           <title>Comprovante de Fechamento</title>
           <style>
             body {
-              font-family: 'Courier New', monospace;
-              font-size: 12px;
+              font-family: 'Arial Black', monospace;
+              font-size: 13px;
               line-height: 1;
               margin: 0;
               padding: 5px;
-              width: 80mm;
+              width: 75mm;
               background: white;
               color: black;
             }
@@ -221,41 +221,40 @@ export default function ModalFecharCaixa({
         <br>
         <div class="text-center">
           <div class="fw-bold">RESTAURANTE EMPORIO DO SABOR</div>
-          <div>CNPJ: 12.345.678/0001-90</div>
+          <div class="fw-bold">CNPJ: 12.345.678/0001-90</div>
         </div>
         <br>
         <div class="text-center">
           <div class="fw-bold">FECHAMENTO DE CAIXA</div>
-          <div>RELATÓRIO FINAL</div>
+          <div class="fw-bold">RELATÓRIO FINAL</div>
         </div>
         <div class="text-center">
-          <div>Data: ${dataAtual}</div>
-          <div>Caixa: ${caixaAtual?.id?.substring(0, 8).toUpperCase() || 'N/A'}</div>
+          <div class="fw-bold">Data: ${dataAtual}</div>
         </div>
-        
+        <br>
         <div class="linha-divisoria"></div>
-        
+        <br>
         <table>
           <tr>
-            <td class="text-left">Valor de Abertura:</td>
-            <td class="text-right">${formatarMoeda(valorAbertura)}</td>
+            <td class="text-left fw-bold">Valor de Abertura:</td>
+            <td class="text-right fw-bold">${formatarMoeda(valorAbertura)}</td>
           </tr>
           <tr>
-            <td class="text-left">Vendas em Dinheiro:</td>
-            <td class="text-right">${formatarMoeda(vendasDinheiro)}</td>
+            <td class="text-left fw-bold">Vendas em Dinheiro:</td>
+            <td class="text-right fw-bold">${formatarMoeda(vendasDinheiro)}</td>
           </tr>
           <tr>
-            <td class="text-left">Total de Vendas:</td>
-            <td class="text-right">${formatarMoeda(totalGeralVendas)}</td>
+            <td class="text-left fw-bold">Total de Vendas:</td>
+            <td class="text-right fw-bold">${formatarMoeda(totalGeralVendas)}</td>
           </tr>
           <tr>
-            <td class="text-left">Total de Retiradas:</td>
-            <td class="text-right">${formatarMoeda(totalRetiradas)}</td>
+            <td class="text-left fw-bold">Total de Retiradas:</td>
+            <td class="text-right fw-bold">${formatarMoeda(totalRetiradas)}</td>
           </tr>
           ${valorRetirada > 0 ? `
             <tr>
-              <td class="text-left">Retirada Final:</td>
-              <td class="text-right">${formatarMoeda(valorRetirada)}</td>
+              <td class="text-left fw-bold">Retirada Final:</td>
+              <td class="text-right fw-bold">${formatarMoeda(valorRetirada)}</td>
             </tr>
           ` : ''}
         </table>
@@ -273,8 +272,8 @@ export default function ModalFecharCaixa({
             if (totalTipo > 0) {
               return `
                 <tr>
-                  <td class="text-left">${formatarTipoPagamento(tipo)}:</td>
-                  <td class="text-right">${formatarMoeda(totalTipo)}</td>
+                  <td class="text-left fw-bold">${formatarTipoPagamento(tipo)}:</td>
+                  <td class="text-right fw-bold">${formatarMoeda(totalTipo)}</td>
                 </tr>
               `
             }
@@ -297,13 +296,10 @@ export default function ModalFecharCaixa({
           return `
             <table>
               <tr>
-                <td class="text-right" style="width: 40%;">${formatarMoeda(valor)}</td>
-                <td class="text-left" style="width: 60%;">
-                  <small>${obs.substring(0, 35)}${obs.length > 35 ? '...' : ''}</small>
+                <td class="text-right fw-bold" style="width: 40%;">${formatarMoeda(valor)}</td>
+                <td class="text-left fw-bold" style="width: 60%;">
+                  <small>${obs.substring(0, 40)}${obs.length > 40 ? '...' : ''}</small>
                 </td>
-              </tr>
-              <tr>
-                <td colspan="2" class="text-left small text-muted">${dataRetirada}</td>
               </tr>
             </table>
             ${index < retiradas.length - 1 ? '<div style="margin-bottom: 2px;"></div>' : ''}
@@ -320,9 +316,6 @@ export default function ModalFecharCaixa({
               <td class="text-left" style="width: 60%;">
                 <small>Retirada final - ${(observacoes || '').substring(0, 35)}${observacoes && observacoes.length > 35 ? '...' : ''}</small>
               </td>
-            </tr>
-            <tr>
-              <td colspan="2" class="text-left small text-muted">${new Date().toLocaleTimeString('pt-BR')}</td>
             </tr>
           </table>
         ` : ''}
