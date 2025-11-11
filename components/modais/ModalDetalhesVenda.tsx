@@ -19,6 +19,7 @@ export default function ModalDetalhesVenda({
   venda,
   onAtualizarVenda,
   onExcluirVenda // Nova prop
+  
 }: ModalDetalhesVendaProps) {
   const [loading, setLoading] = useState(false)
   const [loadingExclusao, setLoadingExclusao] = useState(false)

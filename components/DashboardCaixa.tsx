@@ -396,7 +396,44 @@ const handleExcluirVenda = async (vendaId: string) => {
   }
 }
 
-  /*const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
+
+/*const handleExcluirVenda = async (vendaId: string) => {
+  try {
+    console.log('🗑️ Excluindo venda:', vendaId)
+
+    const response = await fetch(`/api/vendas/${vendaId}`, {
+      method: 'DELETE'
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ Erro HTTP:', response.status, errorText)
+      throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao excluir venda'}`)
+    }
+
+    const contentType = response.headers.get('content-type')
+    let data
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json()
+    } else {
+      const text = await response.text()
+      data = { success: true, message: 'Venda excluída com sucesso' }
+    }
+
+    console.log('✅ Venda excluída com sucesso:', data)
+
+    // Recarregar os dados do caixa para atualizar a lista
+    await carregarDadosCaixa()
+
+    return data
+
+  } catch (error: any) {
+    console.error('❌ Erro ao excluir venda:', error)
+    throw error
+  }
+}
+
+  const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
     try {
       const response = await fetch(`/api/vendas/${vendaId}`, {
         method: 'PUT',
@@ -611,7 +648,7 @@ const handleExcluirVenda = async (vendaId: string) => {
         </div>
 
         {/* NOVO CARD: Vendas Pendentes */}
-        <div className="card mt-4">
+        <div className="card mt-4" style={{ height: '80vh', minHeight: '600px', maxHeight: '800px' }}>
           <div className="card-header bg-warning text-dark">
             <h5 className="card-title mb-0">
               <i className="bi bi-clock-history me-2"></i>
@@ -636,7 +673,7 @@ const handleExcluirVenda = async (vendaId: string) => {
                 <div 
                   className="vendas-lista"
                   style={{ 
-                    maxHeight: '300px', 
+                    maxHeight: '500px', 
                     overflowY: 'auto',
                     border: '1px solid #e9ecef',
                     borderRadius: '5px',

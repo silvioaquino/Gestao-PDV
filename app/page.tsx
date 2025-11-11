@@ -235,6 +235,43 @@ export default function Home() {
     setDadosConsulta(null)
   }
 
+  const handleExcluirVenda = async (vendaId: string) => {
+  try {
+    console.log('🗑️ Excluindo venda:', vendaId)
+
+    const response = await fetch(`/api/vendas/${vendaId}`, {
+      method: 'DELETE'
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ Erro HTTP:', response.status, errorText)
+      throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao excluir venda'}`)
+    }
+
+    const contentType = response.headers.get('content-type')
+    let data
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json()
+    } else {
+      const text = await response.text()
+      data = { success: true, message: 'Venda excluída com sucesso' }
+    }
+
+    console.log('✅ Venda excluída com sucesso:', data)
+
+    // Recarregar os dados do caixa para atualizar a lista
+    await carregarDadosCaixa(data.caixaAtual.id)
+
+    return data
+
+  } catch (error: any) {
+    console.error('❌ Erro ao excluir venda:', error)
+    throw error
+  }
+}
+
+
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-dark" style={{backgroundColor: '#2c3e50'}}>
@@ -306,6 +343,7 @@ export default function Home() {
         onClose={() => setShowDetalhesVenda(false)}
         venda={vendaSelecionada}
         onAtualizarVenda={handleAtualizarVenda}
+        onExcluirVenda={handleExcluirVenda}
       />
 
       <ModalDetalhesRetirada
