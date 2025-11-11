@@ -123,20 +123,31 @@ export default function DashboardCaixa({
     }
   }
 
-  // Cálculos
+  // Cálculos atualizados
   const vendasDinheiro = vendas
     .filter(v => v.tipoPagamento === 'DINHEIRO')
     .reduce((total, v) => total + (v.valorTotal || 0), 0)
+
+  // INCLUIR valor inicial do caixa no dinheiro
+  const totalSistemaDinheiro = vendasDinheiro + (caixaAtual?.valorInicial || 0)
 
   const todasVendas = vendas.reduce((total, v) => total + (v.valorTotal || 0), 0)
   const totalRetiradas = retiradas.reduce((total, r) => total + (r.valor || 0), 0)
   const saldoAtual = (caixaAtual?.valorInicial || 0) + vendasDinheiro - totalRetiradas
 
-  // Calcular totais por tipo de pagamento
+  // Calcular totais por tipo de pagamento (ATUALIZADO)
   const totaisPorTipo = tiposPagamento.reduce((acc, tipo) => {
-    acc[tipo] = vendas
-      .filter(v => v.tipoPagamento === tipo)
-      .reduce((total, v) => total + (v.valorTotal || 0), 0)
+    if (tipo === 'DINHEIRO') {
+      // Para dinheiro: soma valor inicial + vendas em dinheiro
+      acc[tipo] = (caixaAtual?.valorInicial || 0) + vendas
+        .filter(v => v.tipoPagamento === tipo)
+        .reduce((total, v) => total + (v.valorTotal || 0), 0)
+    } else {
+      // Para outros tipos: apenas as vendas
+      acc[tipo] = vendas
+        .filter(v => v.tipoPagamento === tipo)
+        .reduce((total, v) => total + (v.valorTotal || 0), 0)
+    }
     return acc
   }, {} as {[key: string]: number})
 
@@ -147,9 +158,19 @@ export default function DashboardCaixa({
     return acc
   }, {} as {[key: string]: number})
 
-  // Calcular diferenças (Manual - Sistema)
+  // Calcular diferenças (Manual - Sistema) - ATUALIZADO
   const diferencasPorTipo = tiposPagamento.reduce((acc, tipo) => {
-    acc[tipo] = totaisManuaisPorTipo[tipo] - totaisPorTipo[tipo]
+    if (tipo === 'DINHEIRO') {
+      // Para dinheiro: manual - (vendas + valor inicial)
+      const vendasDinheiroSistema = vendas
+        .filter(v => v.tipoPagamento === 'DINHEIRO')
+        .reduce((total, v) => total + (v.valorTotal || 0), 0)
+      
+      acc[tipo] = totaisManuaisPorTipo[tipo] - (vendasDinheiroSistema + (caixaAtual?.valorInicial || 0))
+    } else {
+      // Para outros tipos: manual - vendas
+      acc[tipo] = totaisManuaisPorTipo[tipo] - totaisPorTipo[tipo]
+    }
     return acc
   }, {} as {[key: string]: number})
 
@@ -301,150 +322,36 @@ export default function DashboardCaixa({
     setShowPreviewImpressao(true)
   }
 
-
-  // Atualize a função handleAtualizarVenda no DashboardCaixa:
-
-const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
-  try {
-    console.log('📤 Atualizando venda:', { vendaId, tipoPagamento })
-
-    const response = await fetch(`/api/vendas/${vendaId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tipo_pagamento: tipoPagamento })
-    })
-
-    // Verificar se a resposta está OK antes de tentar parsear JSON
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('❌ Erro HTTP:', response.status, errorText)
-      throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao atualizar venda'}`)
-    }
-
-    // Tentar parsear JSON apenas se houver conteúdo
-    const contentType = response.headers.get('content-type')
-    let data
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      const text = await response.text()
-      console.log('📥 Resposta não-JSON:', text)
-      // Se não for JSON, assumir sucesso
-      data = { success: true, message: 'Venda atualizada com sucesso' }
-    }
-
-    console.log('✅ Venda atualizada com sucesso:', data)
-
-    // Atualizar a lista de vendas localmente
-    setVendas(prevVendas => 
-      prevVendas.map(v => 
-        v.id === vendaId 
-          ? { ...v, tipoPagamento: tipoPagamento }
-          : v
-      )
-    )
-
-    // Recarregar os dados do caixa para atualizar os totais
-    await carregarDadosCaixa()
-
-    // Ajustar alturas após atualização
-    setTimeout(ajustarAlturasListas, 100)
-
-    return data
-
-  } catch (error: any) {
-    console.error('❌ Erro ao atualizar venda:', error)
-    throw error
-  }
-}
-
-// No DashboardCaixa, adicione esta função:
-
-const handleExcluirVenda = async (vendaId: string) => {
-  try {
-    console.log('🗑️ Excluindo venda:', vendaId)
-
-    const response = await fetch(`/api/vendas/${vendaId}`, {
-      method: 'DELETE'
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('❌ Erro HTTP:', response.status, errorText)
-      throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao excluir venda'}`)
-    }
-
-    const contentType = response.headers.get('content-type')
-    let data
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      const text = await response.text()
-      data = { success: true, message: 'Venda excluída com sucesso' }
-    }
-
-    console.log('✅ Venda excluída com sucesso:', data)
-
-    // Recarregar os dados do caixa para atualizar a lista
-    await carregarDadosCaixa()
-
-    return data
-
-  } catch (error: any) {
-    console.error('❌ Erro ao excluir venda:', error)
-    throw error
-  }
-}
-
-
-/*const handleExcluirVenda = async (vendaId: string) => {
-  try {
-    console.log('🗑️ Excluindo venda:', vendaId)
-
-    const response = await fetch(`/api/vendas/${vendaId}`, {
-      method: 'DELETE'
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('❌ Erro HTTP:', response.status, errorText)
-      throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao excluir venda'}`)
-    }
-
-    const contentType = response.headers.get('content-type')
-    let data
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      const text = await response.text()
-      data = { success: true, message: 'Venda excluída com sucesso' }
-    }
-
-    console.log('✅ Venda excluída com sucesso:', data)
-
-    // Recarregar os dados do caixa para atualizar a lista
-    await carregarDadosCaixa()
-
-    return data
-
-  } catch (error: any) {
-    console.error('❌ Erro ao excluir venda:', error)
-    throw error
-  }
-}
-
   const handleAtualizarVenda = async (vendaId: string, tipoPagamento: string) => {
     try {
+      console.log('📤 Atualizando venda:', { vendaId, tipoPagamento })
+
       const response = await fetch(`/api/vendas/${vendaId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tipo_pagamento: tipoPagamento })
       })
 
+      // Verificar se a resposta está OK antes de tentar parsear JSON
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Erro ao atualizar venda')
+        const errorText = await response.text()
+        console.error('❌ Erro HTTP:', response.status, errorText)
+        throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao atualizar venda'}`)
       }
+
+      // Tentar parsear JSON apenas se houver conteúdo
+      const contentType = response.headers.get('content-type')
+      let data
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json()
+      } else {
+        const text = await response.text()
+        console.log('📥 Resposta não-JSON:', text)
+        // Se não for JSON, assumir sucesso
+        data = { success: true, message: 'Venda atualizada com sucesso' }
+      }
+
+      console.log('✅ Venda atualizada com sucesso:', data)
 
       // Atualizar a lista de vendas localmente
       setVendas(prevVendas => 
@@ -455,14 +362,55 @@ const handleExcluirVenda = async (vendaId: string) => {
         )
       )
 
+      // Recarregar os dados do caixa para atualizar os totais
+      await carregarDadosCaixa()
+
       // Ajustar alturas após atualização
       setTimeout(ajustarAlturasListas, 100)
+
+      return data
 
     } catch (error: any) {
       console.error('❌ Erro ao atualizar venda:', error)
       throw error
     }
-  }*/
+  }
+
+  const handleExcluirVenda = async (vendaId: string) => {
+    try {
+      console.log('🗑️ Excluindo venda:', vendaId)
+
+      const response = await fetch(`/api/vendas/${vendaId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ Erro HTTP:', response.status, errorText)
+        throw new Error(`Erro ${response.status}: ${errorText || 'Erro ao excluir venda'}`)
+      }
+
+      const contentType = response.headers.get('content-type')
+      let data
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json()
+      } else {
+        const text = await response.text()
+        data = { success: true, message: 'Venda excluída com sucesso' }
+      }
+
+      console.log('✅ Venda excluída com sucesso:', data)
+
+      // Recarregar os dados do caixa para atualizar a lista
+      await carregarDadosCaixa()
+
+      return data
+
+    } catch (error: any) {
+      console.error('❌ Erro ao excluir venda:', error)
+      throw error
+    }
+  }
 
   const handleExcluirRetirada = async (retiradaId: string) => {
     try {
@@ -537,7 +485,7 @@ const handleExcluirVenda = async (vendaId: string) => {
   return (
     <div className="row">
       <div className="col-md-4">
-        {/* Resumo do Caixa */}
+        {/* Resumo do Caixa ATUALIZADO */}
         <div className="card">
           <div className="card-header bg-primary text-white">
             <h5 className="card-title mb-0">Resumo do Caixa</h5>
@@ -550,7 +498,11 @@ const handleExcluirVenda = async (vendaId: string) => {
               <strong>Vendas em Dinheiro:</strong> {formatarMoeda(vendasDinheiro)}
             </div>
             <div className="mb-3">
-              <strong>Total de Vendas:</strong> {formatarMoeda(todasVendas)}
+              <strong>Total Dinheiro (Inicial + Vendas):</strong> 
+              <span className="fw-bold text-primary"> {formatarMoeda(totalSistemaDinheiro)}</span>
+            </div>
+            <div className="mb-3">
+              <strong>Total de Vendas (Todos os Tipos):</strong> {formatarMoeda(todasVendas)}
             </div>
             <div className="mb-3">
               <strong>Total de Retiradas:</strong> {formatarMoeda(totalRetiradas)}
@@ -648,7 +600,7 @@ const handleExcluirVenda = async (vendaId: string) => {
         </div>
 
         {/* NOVO CARD: Vendas Pendentes */}
-        <div className="card mt-4" style={{ height: '80vh', minHeight: '600px', maxHeight: '800px' }}>
+        <div className="card mt-4" style={{ minHeight: '600px' }}>
           <div className="card-header bg-warning text-dark">
             <h5 className="card-title mb-0">
               <i className="bi bi-clock-history me-2"></i>
@@ -658,7 +610,7 @@ const handleExcluirVenda = async (vendaId: string) => {
               )}
             </h5>
           </div>
-          <div className="card-body">
+          <div className="card-body d-flex flex-column">
             {vendasPendentes.length > 0 ? (
               <>
                 <div className="mb-3">
@@ -671,9 +623,9 @@ const handleExcluirVenda = async (vendaId: string) => {
                 </div>
                 
                 <div 
-                  className="vendas-lista"
+                  className="vendas-lista flex-grow-1"
                   style={{ 
-                    maxHeight: '500px', 
+                    maxHeight: '500px',
                     overflowY: 'auto',
                     border: '1px solid #e9ecef',
                     borderRadius: '5px',
@@ -751,7 +703,7 @@ const handleExcluirVenda = async (vendaId: string) => {
                 </div>
               </>
             ) : (
-              <div className="text-center text-muted py-4">
+              <div className="text-center text-muted py-4 flex-grow-1 d-flex flex-column justify-content-center">
                 <i className="bi bi-check-circle text-success" style={{ fontSize: '2rem' }}></i>
                 <p className="mt-2 mb-0">Nenhuma venda pendente</p>
                 <small>Todas as vendas têm tipo de pagamento definido</small>
@@ -786,9 +738,12 @@ const handleExcluirVenda = async (vendaId: string) => {
               {tiposPagamento.map(tipo => {
                 const vendasTipo = vendas.filter(venda => venda.tipoPagamento === tipo)
                 const vendasManuaisTipo = vendasManuais[tipo] || []
-                const totalSistema = totaisPorTipo[tipo]
+                
+                // CÁLCULO ATUALIZADO PARA DINHEIRO
+                let totalSistema = totaisPorTipo[tipo]
                 const totalManual = totaisManuaisPorTipo[tipo]
-                const diferenca = diferencasPorTipo[tipo]
+                const diferenca = totalManual - totalSistema
+                
                 const valorManual = valoresManuais[tipo] || ''
                 const descricaoManual = descricoesManuais[tipo] || ''
 
@@ -806,6 +761,11 @@ const handleExcluirVenda = async (vendaId: string) => {
                         <h6 className="card-title mb-0 text-center">
                           <i className={`${getIconTipoPagamento(tipo)} me-1`}></i>
                           {formatarTipoPagamento(tipo)}
+                          {tipo === 'DINHEIRO' && (
+                            <small className="d-block mt-1" style={{ fontSize: '0.7rem', opacity: 0.9 }}>
+                              (Inclui valor inicial)
+                            </small>
+                          )}
                         </h6>
                       </div>
                       <div className="card-body p-2">
@@ -976,13 +936,20 @@ const handleExcluirVenda = async (vendaId: string) => {
                           </div>
                         </div>
 
-                        {/* LINHA: Totais LADO A LADO */}
+                        {/* LINHA: Totais LADO A LADO - ATUALIZADO */}
                         <div className="row mb-2">
                           <div className="col-6">
                             <div className="payment-total text-center p-1 bg-light rounded">
                               <small>
                                 <strong>Sistema:</strong><br />
                                 {formatarMoeda(totalSistema)}
+                                {tipo === 'DINHEIRO' && (
+                                  <div className="mt-1">
+                                    <small className="text-muted">
+                                      (Inicial: {formatarMoeda(caixaAtual?.valorInicial || 0)})
+                                    </small>
+                                  </div>
+                                )}
                               </small>
                             </div>
                           </div>
@@ -1011,7 +978,7 @@ const handleExcluirVenda = async (vendaId: string) => {
               })}
             </div>
 
-            {/* Resumo Geral */}
+            {/* Resumo Geral ATUALIZADO */}
             <div className="row mt-4">
               <div className="col-12">
                 <div className="card bg-light">
@@ -1020,6 +987,12 @@ const handleExcluirVenda = async (vendaId: string) => {
                       <div className="col-md-6">
                         <h6 className="mb-3">Resumo de Vendas</h6>
                         <div className="d-flex justify-content-between mb-2">
+                          <span>Valor Inicial do Caixa:</span>
+                          <span className="badge bg-secondary fs-6">
+                            {formatarMoeda(caixaAtual?.valorInicial || 0)}
+                          </span>
+                        </div>
+                        <div className="d-flex justify-content-between mb-2">
                           <span>Vendas do Sistema:</span>
                           <span className="badge bg-primary fs-6">{formatarMoeda(todasVendas)}</span>
                         </div>
@@ -1027,6 +1000,12 @@ const handleExcluirVenda = async (vendaId: string) => {
                           <span>Vendas Manuais:</span>
                           <span className="badge bg-success fs-6">
                             {formatarMoeda(Object.values(totaisManuaisPorTipo).reduce((a, b) => a + b, 0))}
+                          </span>
+                        </div>
+                        <div className="d-flex justify-content-between mb-2">
+                          <span>Total Dinheiro (Sistema):</span>
+                          <span className="badge bg-info fs-6">
+                            {formatarMoeda(totalSistemaDinheiro)}
                           </span>
                         </div>
                       </div>
@@ -1040,6 +1019,9 @@ const handleExcluirVenda = async (vendaId: string) => {
                           }`}>
                             {formatarMoeda(Object.values(diferencasPorTipo).reduce((a, b) => a + b, 0))}
                           </span>
+                        </div>
+                        <div className="mt-2 small text-muted">
+                          * O valor do sistema para DINHEIRO inclui o valor inicial do caixa
                         </div>
                       </div>
                     </div>
